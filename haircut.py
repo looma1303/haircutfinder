@@ -1,47 +1,42 @@
-import numpy as np
 import cv2
-from urllib.parse import quote_plus
-from bs4 import BeautifulSoup
-from selenium import webdriver
 import time
 from PIL import Image
 import pyautogui as pg
-import pyautogui as pag
-from PIL import ImageGrab
-import googlemaps
-import pprint
-from GoogleMapsAPIKey import get_my_key
+import requests
+import json
+
+
 
 def start():
     off =input("당신의 머리길이를 측정하고 미용실을 예약해주는 프로그램입니다. y:계속, n:프로그램 종료")
     if off == 'y':
-        start_()
+        find_face_eyes()
     elif off == 'n':
         print("프로그램을 종료합니다..")
     
-def start_():
+def reservation_start():
     aldydtlf = input("가장 가까운 미용실을 예약하기 위해 거주지를 알려주시겠습니까? y/n")
     if aldydtlf == 'y':
-        get_reservation_information()
+        get_reservaiton_information()
     elif aldydtlf == 'n':
         start_1()
     else:
         print("y 혹은 n을 입력해주세요.")
-        start_()
+        reservation_start()
         
         
             
 def start_1():
     
-    dksgo = input("미용실 예약기능은 사용할수 없습니다 괜찮으시겠습니까?")
+    dksgo = input("미용실 예약기능을 사용하지 않으시겠습니까? y(사용하지 않는다)/n(사용한다.)")
     if dksgo == 'y':
-        
-        print("다음 단계로 넘어갑니다...")
-        find_face_eyes()
-            
-    elif dksgo == 'n':
         print("처음화면으로 넘어갑니다...")
         start()
+        
+            
+    elif dksgo == 'n':
+        print("다음단계로 넘어갑니다...")
+        get_reservaiton_information()
 
         
     else:
@@ -79,6 +74,8 @@ def find_face_eyes():
     hairbox_2 = face_data[y:y+box_y, eyes_add[2][1]+eyes_add[2][3]]
     cv2.imwrite('hairbox_1.png',hairbox_1)
     cv2.imwrite('hairbox_2.png',hairbox_2)
+    
+    hairbox_scan()
 
 
 def hairbox_scan():
@@ -101,10 +98,78 @@ def hairbox_scan():
         start()
     
     
-def get_reservation_information():
+def get_reservaiton_information():
     f = open('api_key.txt','r')
     line = f.readline()
     API_KEY = line
+    api = GooglePlaces(line)
+    places = api.search_place_by_coodinate()
+    where = input('거주지를 입력해주세요: ex)순천시 매곡동 매산고등학교')
+    location = get_addr_place(where)
+    radius = 100
+    while len(places) == 1:
+        places = api.search_places_by_coordinate(location, str(radius), 'beauty_salon')
+        radius = radius -1
+    place = places
+    fields = ['name', 'formatted_address', 'international_phone_number', 'website']
+    details = api.get_place_details(place['place_id'], fields)
+    try:
+        website = details['result']['website']
+    except KeyError:
+        website = ""
+    
+    try:
+        name = details['result']['name']
+    except KeyError:
+        name = ""
+        
+    try:
+        address = details['result']['formatted_address']
+    except KeyError:
+        address = ""
+        
+    try:
+        phone_number = details['result']['international_phone_number']
+    except KeyError:
+        phone_number = ""
+        
+    try:
+        reviews = details['result']['reviews']
+    except KeyError:
+        reviews = []
+        
+    print('가장 가까운 미용실 이름:{name}'.format(name = name))
+    
+    asking_in_reservation(name,phone_number)
+        
+
+    
+def asking_in_reservation(name,phone_number):
+    
+    dpdir = input("예약 하시곘습니까? y/n")
+    if dpdir == 'y':
+        reservation(name,phone_number)
+    elif dpdir == 'n':
+        print('처음 화면으로 돌아갑니다...')
+        start()
+    else:
+        print('y 혹은 n을 입력해주세요')
+        asking_in_reservation()
+        
+def reservation(name,phone_number):
+    print('{name}의 전화번호는 {phone_number}입니다')
+    bye = input('프로그램을 종료하시겠습니까? y/n')
+    if bye == 'y':
+        print('끝')
+    elif bye == 'n':
+        print('처음화면으로 돌아갑니다...')
+        start()
+    else:
+        print('y 혹은 n을 입력해주세요')
+        reservation(name,phone_number)
+    
+    
+    
     
     
 
@@ -112,14 +177,60 @@ def get_reservation_information():
 
 def asking():
     answer = input("당신의 머리가 긴편입니다. 가장 가까운 미용실을 예약할까요? y/n")
-    if answer == y:
-        reservation()
-    elif answer == n:
+    if answer == 'y':
+        get_reservaiton_information()
+    elif answer == 'n':
         print("처음화면으로 돌아갑니다...")
-        start()
+        start_1()
     else:
         print("y나 n을 입력해주세요")
         asking()
+
+class GooglePlaces(object):
+    def __init__(self, API_KEY):
+        super(GooglePlaces, self).__init__()
+        self.apiKey = API_KEY
         
-def reservation():
+    def search_places_by_coordinate(self, location, radius, types):
+        endpoint_url = "https://maps.googleapis.com/maps/api/place/nearbysearch/json"
+        places = []
+        params = {
+            'location': location,
+            'radius': radius,
+            'types': types,
+            'key': self.apiKey
+            }
+        res = requests.get(endpoint_url, params = params)
+        results = json.loads(res.content)
+        places.extend(results['results'])
+        time.sleep(2)
+        while "next_page_token" in results:
+            params['pagetoken'] = results['next_page_token'],
+            res = requests.get(endpoint_url, params = params)
+            results = json.loads(res.content)
+            time.sleep(2)
+        return places
+    def get_place_details(self, place_id, fields):
+        endpoint_url = "https://maps.googleapi.com/maps/api/place/details/json"
+        params = {
+            'placeid': place_id,
+            'fields': ",".join(fields),
+            'key': self.apiKey
+            }
+        res = requests.get(endpoint_url, params = params)
+        place_details = json.loads(res.content)
+        return place_details
+    
+def get_addr_place(location):
+    
+    url = 'http://maps.googleapis.com/maps/api/geocode/json?sensor=false&language=ko&addres={}'.format(location)
+        
+    response = requests.get(url)
+    data = response.json()
+        
+    lat = data['results'][0]['geometry']['location']['lat']
+    lng = data['results'][0]['geometry']['location']['lng']
+    return  lat+','+lng
+        
+
     
