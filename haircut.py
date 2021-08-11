@@ -44,27 +44,34 @@ def start_1():
         start_1()
     
 def find_face_eyes():
+    cam = cv2.VideoCapture(0)
+    cam.set(3,640)
+    cam.set(4,480)
+    ret, frame = cam.read()
+    cv2.imwrite('001.jpg', frame)
+    cam.release()
+    cv2.destroyAllWindows()
     
     eyes_add = list()
     img_src = cv2.imread("001.jpg")
     img = cv2.cvtColor(img_src, cv2.COLOR_BGR2GRAY)
-    img2 = img_src
+   
     faceCascade = cv2.CascadeClassifier("haarcascade_frontalface_alt.xml")
     eyeCascade = cv2.CascadeClassifier("haarcascade_eye.xml")
     face_data = faceCascade.detectMultiScale(img, scaleFactor=1.1, minNeighbors=1, minSize=(40,40))
     if len(face_data) > 0:
         
         print("얼굴인식 완료")
-        color = (0,0,255)
+ 
         for f in face_data:
             
             x,y,w,h = f
-            eye_pic = face_data[y:y+h:,x:x+w]
+          
             eyes = eyeCascade.detectMultiScale(img,1.1,3) #눈찾기
             for e in eyes:
                 ex,ey,ew,eh = e
                 eyes_add.append([ex,ey,ew,eh])
-        face_add = [x,y,w,h]
+     
     
     else: 
         print("얼굴이 인식되지 않았습니다.\n")
@@ -89,7 +96,12 @@ def hairbox_scan():
     hair_color_2 = hairbox2.getpixel(point_2)
     real_hair_color = hairfull_img.getpixel(point_hair_color)
     
-    if real_hair_color == hair_color_1 or real_hair_color == hair_color_2:
+    real_color = real_hair_color[0] + real_hair_color[1] + real_hair_color[2]
+    box1_color = hair_color_1[0] + hair_color_1[1] + hair_color_1[2]
+    box2_color = hair_color_2[0] + hair_color_2[1] + hair_color_2[2]
+    gap = (real_color - box1_color) + (real_color - box2_color)
+    if gap <= 100:
+        
         asking()
         
     else:
