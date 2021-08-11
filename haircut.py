@@ -6,13 +6,19 @@ import requests
 import json
 
 
-
+if __name__ == "__main__":
+    start()
+    
+    
 def start():
     off =input("당신의 머리길이를 측정하고 미용실을 예약해주는 프로그램입니다. y:계속, n:프로그램 종료")
     if off == 'y':
         find_face_eyes()
     elif off == 'n':
         print("프로그램을 종료합니다..")
+    else:
+        print("y 혹은 n을 입력해주세요.")
+        start()
     
 def reservation_start():
     aldydtlf = input("가장 가까운 미용실을 예약하기 위해 거주지를 알려주시겠습니까? y/n")
