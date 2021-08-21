@@ -6,9 +6,6 @@ import requests
 import json
 
 
-if __name__ == "__main__":
-    start()
-    
     
 def start():
     off =input("당신의 머리길이를 측정하고 미용실을 예약해주는 프로그램입니다. y:계속, n:프로그램 종료")
@@ -249,6 +246,11 @@ def get_addr_place(location):
     lat = data['results'][0]['geometry']['location']['lat']
     lng = data['results'][0]['geometry']['location']['lng']
     return  lat+','+lng
+
+
+
+if __name__ == "__main__":
+    start()
         
 
     
