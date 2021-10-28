@@ -5,92 +5,103 @@ import pyautogui as pg
 import requests
 import json
 import sys
-from PyQt5.QtWidgets import  QApplication, QWidget, QPushButton, QMessageBox
+from PyQt5.uic import loadUi
+from PyQt5 import QtWidgets
+from PyQt5.QtWidgets import *
 from PyQt5.QtCore import QCoreApplication
-class GUI(QWidget):
+global hairshop_name
+
+class Start_window(QDialog):
     def __init__(self):
-        super().__init__()
-        self.initUI()
+        super(Start_window, self).__init__()
+        loadUi("start_window.ui", self)
+        self.pushButton.clicked.connect(self.go_screen2)
+        self.pushButton_2.clicked.connect(self.go_screen4)
 
-    def initUI(self):
-        place_yes_btn = QPushButton('예',self)
-        place_yes_btn.resize(yes_btn.sizeHint())
+    def go_screen4(self):
+        screen3 = GetFile_Window_Other()
+        wiget.addWidget(screen4)
+        widget.setCurrentIndex(widget.currentIndex()+1)
 
-        place_no_btn = QPushButton('아니오',self)
-        place_no_btn.resize(no_btn.sizeHint())
-        place_no_btn.move(20,30)
-
-        self.setGeometry(300,300,300,300)
-        self.setWindowTitle('hairshop finder')
-
-        place_yes_btn.clicked.connect(self.place_buttonClicked)
-        place_no_btn.clicked.connect(self.place_buttonClicked)
-        self.show()
+    def go_screen2(self):
+        screen2 = Reservation_window()
+        widget.addWidget(screen2)
+        widget.setCurrentIndex(widget.currentIndex()+1)
 
 
-    def place_buttonClicked(self):
-        sender = self.sender()
-        if sender.text() == '예':
-            #거주지를 입력해주세요 (get_reservaiton_information)
-        elif sender.text() == '아니오':
-            #미용실 예약기능을 사용하지 않으시겠습니까 messagebox
-        else:
-            pass
-            
+class Reservation_window(QDialog):
+    def __init__(self):
+        super(Reservation_window, self).__init__()
+        loadUi("Reservation_window.ui", self)
+        self.pushButton.clicked.connect(self.go_screen3)
+        self.pushButton_2.clicked.connect(self.go_screen1)
+
+    def go_screen3(self):
+        screen3 = GetFile_Window()
+        wiget.addWidget(screen3)
+        widget.setCurrentIndex(widget.currentIndex()+1)
+
+    def go_screen1(self):
+        screen1 = Start_window()
+        widget.addWidget(screen1)
+        widget.setCurrentIndex(widget.currentIndex()-1)
 
 
 
-    def closeEvent(self, event):
-        reply = QMessageBox.question(self, 'Quit?',
-                                     '종료하시겠습니까?',
-                                     QMessageBox.Yes | QMessageBox.No, QMessageBox.No)
-
-        if reply == QMessageBox.Yes:
-            if not type(event) == bool:
-                event.accept()
-            else:
-                sys.exit()
-        else:
-            if not type(event) == bool:
-                event.ignore()
 
 
-'''
-def start():
-    off =input("당신의 머리길이를 측정하고 미용실을 예약해주는 프로그램입니다. y:계속, n:프로그램 종료")
-    if off == 'y':
-        find_face_eyes()
-    elif off == 'n':
-        print("프로그램을 종료합니다..")
-    else:
-        print("y 혹은 n을 입력해주세요.")
-        start()
-def reservation_start():
-    aldydtlf = input("가장 가까운 미용실을 예약하기 위해 거주지를 알려주시겠습니까? y/n")
-    if aldydtlf == 'y':
-        get_reservaiton_information()
-    elif aldydtlf == 'n':
-        start_1()
-    else:
-        print("y 혹은 n을 입력해주세요.")
-        reservation_start()
-def start_1():
+class GetFile_Window(QDialog): #예약 O
+    def __init__(self):
+        super(GetFile_Window, self).__init__()
+        loadUi("GetFile_Window.ui", self)
+        self.pushButton.clicked.connect(self.File_find)
+        #self.pushButton_2.clicked.connect(self.go_screen5)
+        self.pushButton_3.clicked.connect(self.go_screen2)
 
-    dksgo = input("미용실 예약기능을 사용하지 않으시겠습니까? y(사용하지 않는다)/n(사용한다.)")
-    if dksgo == 'y':
-        print("처음화면으로 넘어갑니다...")
-        start()
+    #def go_screen5(self):
+        #만약 파일이 인식되지 않았다면 messagebox출력
+        #파일이 인식됐다면 다음
+
+    def go_screen2(self):
+        screen2 = Reservation_window()
+        widget.addWidget(screen2)
+        widget.setCurrentIndex(widget.currentIndex()-1)
+
+    def File_find(self):
+        fname = QFileDialog.getOpenFileName(self)
+        self.label.setText(fname[0])
+
+class GetFile_Window_Other(QDialog):
+    def __init__(self):
+        super(GetFile_Window_Other, self).__init__()
+        loadUi("GetFile_Window.ui", self)
+        self.pushButton.clicked.connect(self.File_find)
+        #self.pushButton_2.clicked.connect(self.go_screen5)
+        self.pushButton_3.clicked.connect(self.go_screen1)
+
+    #def go_screen5(self):
+        #만약 파일이 인식되지 않았다면 messagebox출력
+        #파일이 인식됐다면 다음
+
+    def go_screen1(self):
+        screen1 = Start_window()
+        widget.addWidget(screen1)
+        widget.setCurrentIndex(widget.currentIndex()-1)
+
+    def File_find(self):
+        fname = QFileDialog.getOpenFileName(self)
+        self.label.setText(fname[0])
 
 
-    elif dksgo == 'n':
-        print("다음단계로 넘어갑니다...")
-        get_reservaiton_information()
 
 
-    else:
-        print("y 혹은 n을 입력해주세요")
-        start_1()
-'''
+
+
+
+
+
+
+
 def find_face_eyes():
     cam = cv2.VideoCapture(0)
     cam.set(3,640)
@@ -109,28 +120,35 @@ def find_face_eyes():
     face_data = faceCascade.detectMultiScale(img, scaleFactor=1.1, minNeighbors=1, minSize=(40,40))
     if len(face_data) > 0:
 
-        print("얼굴인식 완료")
+        face_recognize = True
 
         for f in face_data:
 
             x,y,w,h = f
 
             eyes = eyeCascade.detectMultiScale(img,1.1,3) #눈찾기
+            if len(eyes) == 2:
+                eye_recognize = True
+                for e in eyes:
+                    ex,ey,ew,eh = e
+                    eyes_add.append([ex,ey,ew,eh])
+
+                box_y = y - eyes_add[1][2]
+                hairbox_1 = face_data[y:y+box_y, eyes_add[1][1]+eyes_add[1][3]]
+                hairbox_2 = face_data[y:y+box_y, eyes_add[2][1]+eyes_add[2][3]]
+                cv2.imwrite('hairbox_1.png',hairbox_1)
+                cv2.imwrite('hairbox_2.png',hairbox_2)
+
+            else:
+                eye_recognize = False
+
+
             for e in eyes:
                 ex,ey,ew,eh = e
                 eyes_add.append([ex,ey,ew,eh])
 
 
-    else:
-        print("얼굴이 인식되지 않았습니다.\n")
 
-    box_y = y - eyes_add[1][2]
-    hairbox_1 = face_data[y:y+box_y, eyes_add[1][1]+eyes_add[1][3]]
-    hairbox_2 = face_data[y:y+box_y, eyes_add[2][1]+eyes_add[2][3]]
-    cv2.imwrite('hairbox_1.png',hairbox_1)
-    cv2.imwrite('hairbox_2.png',hairbox_2)
-
-    hairbox_scan()
 def hairbox_scan():
     hairbox1 = Image.open('hairbox_1.png')
     hairbox2 = Image.open('hairbox_2.png')
@@ -147,24 +165,23 @@ def hairbox_scan():
     box2_color = hair_color_2[0] + hair_color_2[1] + hair_color_2[2]
     gap = (real_color - box1_color) + (real_color - box2_color)
     if gap <= 100:
+        print('something')
 
-        asking()
+        #예약 ㄱ
 
     else:
-        print("아직 머리 짧음")
-        print("처음 화면으로 돌아갑니다...")
-        start()
+        #아직 머리 짧
+        print('something')
 
 
 
-
-def get_reservaiton_information():
+def get_reservaiton_information(residence):
     f = open('api_key.txt','r')
     line = f.readline()
     API_KEY = line
     api = GooglePlaces(line)
     places = api.search_place_by_coodinate()
-    where = input('거주지를 입력해주세요: ex)순천시 매곡동 매산고등학교')
+    where = residence
     location = get_addr_place(where)
     radius = 100
     while len(places) == 1:
@@ -198,9 +215,9 @@ def get_reservaiton_information():
     except KeyError:
         reviews = []
 
-    print('가장 가까운 미용실 이름:{name}'.format(name = name))
-
-    asking_in_reservation(name,phone_number)
+    #print('가장 가까운 미용실 이름:{name}'.format(name = name))
+    rs = [website, name, address, phone_number, review]
+    return rs
 def asking_in_reservation(name,phone_number):
 
     dpdir = input("예약 하시곘습니까? y/n")
@@ -277,7 +294,20 @@ def get_addr_place(location):
     lat = data['results'][0]['geometry']['location']['lat']
     lng = data['results'][0]['geometry']['location']['lng']
     return  lat+','+lng
+
 if __name__ == "__main__":
     app = QApplication(sys.argv)
-    w = GUI()
-    sys.exit(app.exec_())
+    widget = QtWidgets.QStackedWidget()
+    screen1 = Start_window()
+    screen2 = Reservation_window()
+    screen3 = GetFile_Window()
+    screen4 = GetFile_Window_Other()
+    #screen5 =
+    widget.addWidget(screen1)
+    widget.addWidget(screen2)
+    widget.addWidget(screen3)
+    widget.addWidget(screen4)
+    widget.setFixedHeight(300)
+    widget.setFixedWidth(400)
+    widget.show()
+    app.exec_()
