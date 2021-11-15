@@ -1,4 +1,6 @@
 import cv2
+import googlemaps
+from datetime import datetime
 import time
 from PIL import Image
 import pyautogui as pg
@@ -10,6 +12,8 @@ from PyQt5 import QtWidgets
 from PyQt5.QtWidgets import *
 from PyQt5.QtCore import QCoreApplication
 global hairshop_name
+global _result
+
 
 class Start_window(QDialog):
     def __init__(self):
@@ -19,9 +23,9 @@ class Start_window(QDialog):
         self.pushButton_2.clicked.connect(self.go_screen4)
 
     def go_screen4(self):
-        screen3 = GetFile_Window_Other()
-        wiget.addWidget(screen4)
-        widget.setCurrentIndex(widget.currentIndex()+1)
+        screen4 = GetFile_Window_Other()
+        widget.addWidget(screen4)
+        widget.setCurrentIndex(widget.currentIndex()+3)
 
     def go_screen2(self):
         screen2 = Reservation_window()
@@ -37,9 +41,13 @@ class Reservation_window(QDialog):
         self.pushButton_2.clicked.connect(self.go_screen1)
 
     def go_screen3(self):
+        text = self.lineEdit.text()
+
         screen3 = GetFile_Window()
-        wiget.addWidget(screen3)
+        widget.addWidget(screen3)
         widget.setCurrentIndex(widget.currentIndex()+1)
+
+
 
     def go_screen1(self):
         screen1 = Start_window()
@@ -48,58 +56,11 @@ class Reservation_window(QDialog):
 
 
 
-class face_show(QDialog):
-  def __init__(self):
-    super(face_show, self).__init__()
-    loadUi('face_show.ui', self)
-    result_of_face = hairbox_scan()
-    if result_of_face == 'yet':
-      text = '아직 ㄱㅊ'
-      self.pushButton.clicked.connect(self.go_screen1)
-
-    elif result_of_face == 'reservation':
-      text = '짤라'
-      self.pushButton.clicked.connect(self.go_screen6)
-
-    else:
-      pass
-
-
-    #얼굴에 그림그린거 보여주고 음.,,,,,,
-    #확인버튼
-    #머리 짧은지 긴지 알려줌
-    #다음으로 넘어가면 예약 할수잇는 정보
-
-  def go_screen1(self):
-    screen1 = Start_window()
-    widget.addWidget(screen1)
-    widget.setCurrentIndex(widget.currentIndex()-1)
-  def go_screen6(self):
-    screen6 = show_information()
-    widget.addWidget(screen6)
-    widget.setCurrentIndex(widget.currentIndex()+1)
 
 
 
-class show_information(QDialog):
-  def __init__(self):
-    super(show_information, self).__init__()
-    loadUi('show_information.ui', self)
-    self.pushButton.clicked.connect(self.done)
-    self.pushButoon_2.clicked.connect(self.go_screen1)
-
-  def done(self):
-
-    QCoreApplication.quit()
-    #나중에 전화해주거나 예약해주는것도 구현
-
-
-  def go_screen1(self):
-    screen1 = Start_window()
-    widget.addWidget(screen1)
-    widget.setCurrentIndex(widget.currentIndex()+1)
-
-class GetFile_Window(QDialog): #예약 O
+class GetFile_Window(QDialog):
+     #예약 O
     def __init__(self):
         super(GetFile_Window, self).__init__()
         loadUi("GetFile_Window.ui", self)
@@ -108,9 +69,10 @@ class GetFile_Window(QDialog): #예약 O
         self.pushButton_3.clicked.connect(self.go_screen2)
 
     def go_screen5(self):
-        screen5 = face_show()
+        screen5 = show_information()
         widget.addWidget(screen5)
-        widget.setCurrentIndex(widget.currentIndex()+1)
+        widget.setCurrentIndex(widget.currentIndex()+2)
+
     def go_screen2(self):
         screen2 = Reservation_window()
         widget.addWidget(screen2)
@@ -123,16 +85,47 @@ class GetFile_Window(QDialog): #예약 O
         _result = find_face_eyes(locate)
 
 
+
+class show_information(QDialog):
+
+    def __init__(self):
+
+        super(show_information, self).__init__()
+        loadUi('show_information.ui', self)
+        self.pushButton.clicked.connect(self.done)
+        self.pushButton_2.clicked.connect(self.go_screen1)
+
+    def done(self):
+
+        QCoreApplication.quit()
+    #나중에 전화해주거나 예약해주는것도 구현
+
+
+    def go_screen1(self):
+        screen1 = Start_window()
+        widget.addWidget(screen1)
+        widget.setCurrentIndex(widget.currentIndex()-4)
+
+    def show_result(self):
+        if _result == 'reservaiton':
+            hair = 'long'
+
+
+        result = #머리 깎아야댐. 미용실 정보 아니면 걍 하지말고 ㅇㅇ
+        self.label.setText('a')
+
+
+
 class GetFile_Window_Other(QDialog):
     def __init__(self):
         super(GetFile_Window_Other, self).__init__()
         loadUi("GetFile_Window.ui", self)
         self.pushButton.clicked.connect(self.File_find)
-        #self.pushButton_2.clicked.connect(self.go_screen5)
+        self.pushButton_2.clicked.connect(self.go_screen5)
         self.pushButton_3.clicked.connect(self.go_screen1)
 
     def go_screen5(self):
-      screen5 = face_show()
+      screen5 = show_information()
       widget.addWidget(screen5)
       widget.setCurrentIndex(widget.currentIndex()+1)
 
@@ -165,7 +158,7 @@ def find_face_eyes(locate):
     cv2.destroyAllWindows()
 
     eyes_add = list()
-    img_src = cv2.imread("001.jpg")
+    img_src = cv2.imread(locate)
     img = cv2.cvtColor(img_src, cv2.COLOR_BGR2GRAY)
 
     faceCascade = cv2.CascadeClassifier("haarcascade_frontalface_alt.xml")
@@ -199,6 +192,7 @@ def find_face_eyes(locate):
             for e in eyes:
                 ex,ey,ew,eh = e
                 eyes_add.append([ex,ey,ew,eh])
+    hairbox_scan()
 
 
 
@@ -328,14 +322,12 @@ if __name__ == "__main__":
     screen2 = Reservation_window()
     screen3 = GetFile_Window()
     screen4 = GetFile_Window_Other()
-    screen5 = face_show()
-    screen6 = show_information()
+    screen5 = show_information()
     widget.addWidget(screen1)
     widget.addWidget(screen2)
     widget.addWidget(screen3)
     widget.addWidget(screen4)
     widget.addWidget(screen5)
-    widget.addWidget(screen6)
     widget.setFixedHeight(300)
     widget.setFixedWidth(400)
     widget.show()
