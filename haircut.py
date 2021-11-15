@@ -48,20 +48,69 @@ class Reservation_window(QDialog):
 
 
 
+class face_show(QDialog):
+  def __init__(self):
+    super(face_show, self).__init__()
+    loadUi('face_show.ui', self)
+    result_of_face = hairbox_scan()
+    if result_of_face == 'yet':
+      text = '아직 ㄱㅊ'
+      self.pushButton.clicked.connect(self.go_screen1)
 
+    elif result_of_face == 'reservation':
+      text = '짤라'
+      self.pushButton.clicked.connect(self.go_screen6)
+
+    else:
+      pass
+
+
+    #얼굴에 그림그린거 보여주고 음.,,,,,,
+    #확인버튼
+    #머리 짧은지 긴지 알려줌
+    #다음으로 넘어가면 예약 할수잇는 정보
+
+  def go_screen1(self):
+    screen1 = Start_window()
+    widget.addWidget(screen1)
+    widget.setCurrentIndex(widget.currentIndex()-1)
+  def go_screen6(self):
+    screen6 = show_information()
+    widget.addWidget(screen6)
+    widget.setCurrentIndex(widget.currentIndex()+1)
+
+
+
+class show_information(QDialog):
+  def __init__(self):
+    super(show_information, self).__init__()
+    loadUi('show_information.ui', self)
+    self.pushButton.clicked.connect(self.done)
+    self.pushButoon_2.clicked.connect(self.go_screen1)
+
+  def done(self):
+
+    QCoreApplication.quit()
+    #나중에 전화해주거나 예약해주는것도 구현
+
+
+  def go_screen1(self):
+    screen1 = Start_window()
+    widget.addWidget(screen1)
+    widget.setCurrentIndex(widget.currentIndex()+1)
 
 class GetFile_Window(QDialog): #예약 O
     def __init__(self):
         super(GetFile_Window, self).__init__()
         loadUi("GetFile_Window.ui", self)
         self.pushButton.clicked.connect(self.File_find)
-        #self.pushButton_2.clicked.connect(self.go_screen5)
+        self.pushButton_2.clicked.connect(self.go_screen5)
         self.pushButton_3.clicked.connect(self.go_screen2)
 
-    #def go_screen5(self):
-        #만약 파일이 인식되지 않았다면 messagebox출력
-        #파일이 인식됐다면 다음
-
+    def go_screen5(self):
+        screen5 = face_show()
+        widget.addWidget(screen5)
+        widget.setCurrentIndex(widget.currentIndex()+1)
     def go_screen2(self):
         screen2 = Reservation_window()
         widget.addWidget(screen2)
@@ -70,6 +119,9 @@ class GetFile_Window(QDialog): #예약 O
     def File_find(self):
         fname = QFileDialog.getOpenFileName(self)
         self.label.setText(fname[0])
+        locate = fname[0]
+        _result = find_face_eyes(locate)
+
 
 class GetFile_Window_Other(QDialog):
     def __init__(self):
@@ -79,9 +131,10 @@ class GetFile_Window_Other(QDialog):
         #self.pushButton_2.clicked.connect(self.go_screen5)
         self.pushButton_3.clicked.connect(self.go_screen1)
 
-    #def go_screen5(self):
-        #만약 파일이 인식되지 않았다면 messagebox출력
-        #파일이 인식됐다면 다음
+    def go_screen5(self):
+      screen5 = face_show()
+      widget.addWidget(screen5)
+      widget.setCurrentIndex(widget.currentIndex()+1)
 
     def go_screen1(self):
         screen1 = Start_window()
@@ -102,12 +155,12 @@ class GetFile_Window_Other(QDialog):
 
 
 
-def find_face_eyes():
+def find_face_eyes(locate):
     cam = cv2.VideoCapture(0)
     cam.set(3,640)
     cam.set(4,480)
     ret, frame = cam.read()
-    cv2.imwrite('001.jpg', frame)
+    cv2.imwrite(locate, frame)
     cam.release()
     cv2.destroyAllWindows()
 
@@ -165,13 +218,17 @@ def hairbox_scan():
     box2_color = hair_color_2[0] + hair_color_2[1] + hair_color_2[2]
     gap = (real_color - box1_color) + (real_color - box2_color)
     if gap <= 100:
-        print('something')
+      a = 'reservaiton'
 
-        #예약 ㄱ
+      return a
+
+
 
     else:
-        #아직 머리 짧
-        print('something')
+
+      #아직 머리 짧
+      a = 'yet'
+      return a
 
 
 
@@ -218,38 +275,7 @@ def get_reservaiton_information(residence):
     #print('가장 가까운 미용실 이름:{name}'.format(name = name))
     rs = [website, name, address, phone_number, review]
     return rs
-def asking_in_reservation(name,phone_number):
 
-    dpdir = input("예약 하시곘습니까? y/n")
-    if dpdir == 'y':
-        reservation(name,phone_number)
-    elif dpdir == 'n':
-        print('처음 화면으로 돌아갑니다...')
-        start()
-    else:
-        print('y 혹은 n을 입력해주세요')
-        asking_in_reservation()
-def reservation(name,phone_number):
-    print('{name}의 전화번호는 {phone_number}입니다')
-    bye = input('프로그램을 종료하시겠습니까? y/n')
-    if bye == 'y':
-        print('끝')
-    elif bye == 'n':
-        print('처음화면으로 돌아갑니다...')
-        start()
-    else:
-        print('y 혹은 n을 입력해주세요')
-        reservation(name,phone_number)
-def asking():
-    answer = input("당신의 머리가 긴편입니다. 가장 가까운 미용실을 예약할까요? y/n")
-    if answer == 'y':
-        get_reservaiton_information()
-    elif answer == 'n':
-        print("처음화면으로 돌아갑니다...")
-        start_1()
-    else:
-        print("y나 n을 입력해주세요")
-        asking()
 class GooglePlaces(object):
     def __init__(self, API_KEY):
         super(GooglePlaces, self).__init__()
@@ -302,11 +328,14 @@ if __name__ == "__main__":
     screen2 = Reservation_window()
     screen3 = GetFile_Window()
     screen4 = GetFile_Window_Other()
-    #screen5 =
+    screen5 = face_show()
+    screen6 = show_information()
     widget.addWidget(screen1)
     widget.addWidget(screen2)
     widget.addWidget(screen3)
     widget.addWidget(screen4)
+    widget.addWidget(screen5)
+    widget.addWidget(screen6)
     widget.setFixedHeight(300)
     widget.setFixedWidth(400)
     widget.show()
